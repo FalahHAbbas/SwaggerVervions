@@ -1,3 +1,5 @@
+using System.Reflection;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
@@ -15,28 +17,30 @@ public class Startup {
         builder.AddConsole();
     });
 
-    public void ConfigureServices(IServiceCollection services) {
+    private List<string?> GetControllerNameSpaces() {
+        var assembly = Assembly.GetExecutingAssembly();
+        var types = assembly.GetTypes();
+        var controllerNameSpaces = (from type in types where type.IsClass && type.CustomAttributes.Any(x => x.AttributeType == typeof(ApiControllerAttribute)) select type.Namespace!).ToList();
+        return controllerNameSpaces.Distinct().ToList();
+    }
 
+    public void ConfigureServices(IServiceCollection services) {
+        var controllersNameSpaces = GetControllerNameSpaces();
         services.AddSwaggerGen(genOptions =>
         {
-            genOptions.SwaggerDoc("Path1",
-                new OpenApiInfo{ Version = "Path1", Title = "Path1 API", });
-
-            genOptions.SwaggerDoc("Path2",
-                new OpenApiInfo{ Version = "Path2", Title = "Path2 API", });
+            controllersNameSpaces.ForEach(x => genOptions.SwaggerDoc(x,
+                new OpenApiInfo{
+                    Title = x?[x.LastIndexOf(".", StringComparison.Ordinal)..],
+                    Version = x
+                }));
 
             genOptions.DocInclusionPredicate((docName, apiDesc) =>
             {
-                if (docName.Contains("Path1")){
-                    return apiDesc.RelativePath!.Contains("Path1/");
-                }
-
-                if (docName.Contains("Path2")){
-                    return apiDesc.RelativePath!.Contains("Path2/");
+                foreach (var x in controllersNameSpaces.Where(docName.Contains!)){
+                    return apiDesc.ActionDescriptor.DisplayName!.Contains(x!);
                 }
 
                 return true;
-
             });
 
             genOptions.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme{
@@ -71,21 +75,18 @@ public class Startup {
     }
 
     public void Configure(IApplicationBuilder app,
-        IWebHostEnvironment env /*,
-        SseService sseService*/
+        IWebHostEnvironment env
     ) {
-        //if (env.IsDevelopment())
-        //{
+        var controllersNameSpaces = GetControllerNameSpaces();
         app.UseDeveloperExceptionPage();
         app.UseSwagger();
         app.UseSwaggerUI(c =>
         {
             c.DocExpansion(DocExpansion.None);
-            c.SwaggerEndpoint($"/swagger/Path1/swagger.json", "Path1 API V1");
-            c.SwaggerEndpoint($"/swagger/Path2/swagger.json", "Path2 API V1");
-        });
-        //    }
 
+            controllersNameSpaces.ForEach(x => c.SwaggerEndpoint($"/swagger/{x}/swagger.json",
+                x?[(x.LastIndexOf(".", StringComparison.Ordinal) + 1)..]));
+        });
 
         app.UseAuthentication();
         app.UseRouting();

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace SwaggerVervions;
+namespace SwaggerVervions.Path1;
 
 [Route("api/Path1/[controller]/[action]")]
 [ApiController]
