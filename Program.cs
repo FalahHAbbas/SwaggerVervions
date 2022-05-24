@@ -1,6 +1,10 @@
-var builder = WebApplication.CreateBuilder(args);
-var app = builder.Build();
+using Microsoft.OpenApi.Models;
+using SwaggerVervions;
+using Swashbuckle.AspNetCore.SwaggerUI;
 
-app.MapGet("/", () => "Hello World!");
+CreateHostBuilder(args).Build().Run();
 
-app.Run();
+
+ IHostBuilder CreateHostBuilder(string[] args) =>
+    Host.CreateDefaultBuilder(args)
+        .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
