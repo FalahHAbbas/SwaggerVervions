@@ -30,7 +30,7 @@ public class Startup {
         {
             controllersNameSpaces.ForEach(x => genOptions.SwaggerDoc(x,
                 new OpenApiInfo{
-                    Title = x?[x.LastIndexOf(".", StringComparison.Ordinal)..],
+                    Title = x?[(x.LastIndexOf(".", StringComparison.Ordinal)+1) ..],
                     Version = x
                 }));
 
