@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace SwaggerVervions.Path1;
+namespace SwaggerVervions.Controllers.GroupC;
 
-[Route("api/Path1/[controller]/[action]")]
+[Route("api/Path2/[controller]/[action]")]
 [ApiController]
-public class AreaController : ControllerBase {
+public class SizeController : ControllerBase {
 
     [HttpPost]
     public async Task<IActionResult> GetAll() {
